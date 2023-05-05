@@ -1,0 +1,110 @@
+/*FSR1*/
+int fsrPin1 = 1;     
+int fsrReading1;    
+int fsrVoltage1;    
+unsigned long fsrResistance1;  
+unsigned long fsrConductance1;
+long fsrForce1;     
+
+/*FSR2*/
+int fsrPin2 = 2;    
+int fsrReading2;    
+int fsrVoltage2;    
+unsigned long fsrResistance2; 
+unsigned long fsrConductance2; 
+long fsrForce2;   
+
+/*fsr 3*/
+int fsrPin3 = 0;
+int fsrReading3; 
+ 
+void setup(void) {
+  Serial.begin(9600); 
+  pinMode(7, OUTPUT);  
+}
+ 
+void loop(void) {
+  fsrReading1 = analogRead(fsrPin1);  
+  //Serial.print("Analog reading = ");
+  //Serial.println(fsrReading1);
+  fsrVoltage1 = map(fsrReading1, 0, 1023, 0, 5000);
+  //Serial.print("Voltage reading in mV = ");
+  //Serial.println(fsrVoltage);  
+ 
+  if (fsrVoltage1 == 0) {
+    Serial.println("No pressure");  
+  } else {
+    // The voltage = Vcc * R / (R + FSR) where R = 10K and Vcc = 5V
+    // FSR = ((Vcc - V) * R) / V        
+    fsrResistance1 = 5000 - fsrVoltage1;  
+    fsrResistance1 *= 10000;            
+    fsrResistance1 /= fsrVoltage1;
+    //Serial.print("FSR resistance in ohms = ");
+    //Serial.println(fsrResistance1);
+ 
+    fsrConductance1 = 1000000;           
+    fsrConductance1 /= fsrResistance1;
+    //Serial.print("Conductance in microMhos: ");
+    //Serial.println(fsrConductance1);
+    // Use the two FSR guide graphs to approximate the force
+    if (fsrConductance1 <= 1000) {
+      fsrForce1 = fsrConductance1 / 80;
+      //Serial.print("Force in Newtons: ");
+      //Serial.println(fsrForce);      
+    } else {
+      fsrForce1 = fsrConductance1 - 1000;
+      fsrForce1 /= 30;
+      Serial.print("Force in Newtons: ");
+      Serial.println(fsrForce1);            
+    }
+  }
+  //Serial.println("--------------------");
+  fsrReading2 = analogRead(fsrPin2);  
+  //Serial.print("Analog reading = ");
+  //Serial.println(fsrReading2);
+ 
+  // analog voltage reading ranges from about 0 to 1023 which maps to 0V to 5V (= 5000mV)
+  fsrVoltage2 = map(fsrReading2, 0, 1023, 0, 5000);
+  //Serial.print("Voltage reading in mV = ");
+  //Serial.println(fsrVoltage);  
+ 
+  if (fsrVoltage2 == 0) {
+    Serial.println("No pressure");  
+  } else {
+    // The voltage = Vcc * R / (R + FSR) where R = 10K and Vcc = 5V
+    // so FSR = ((Vcc - V) * R) / V        
+    fsrResistance2 = 5000 - fsrVoltage2;     
+    fsrResistance2 *= 10000;                
+    fsrResistance2 /= fsrVoltage2;
+    //Serial.print("FSR resistance in ohms = ");
+    //Serial.println(fsrResistance1);
+ 
+    fsrConductance2 = 1000000;            
+    fsrConductance2 /= fsrResistance2;
+    //Serial.print("Conductance in microMhos: ");
+    //Serial.println(fsrConductance1);
+    if (fsrConductance2 <= 1000) {
+      fsrForce2 = fsrConductance2 / 80;
+      //Serial.print("Force in Newtons: ");
+      //Serial.println(fsrForce);      
+    } else {
+      fsrForce2 = fsrConductance2 - 1000;
+      fsrForce2 /= 30;
+      Serial.print("Force in Newtons: ");
+      Serial.println(fsrForce2);            
+    }
+  }
+  Serial.println("The DIfference is: ");
+  Serial.println(fsrForce1-fsrForce2); 
+  fsrReading3 = analogRead(fsrPin3);  
+  //Serial.print("Analog reading = ");
+  //Serial.print(fsrReading3);     // print the raw analog reading
+  if (fsrReading3 > 800) {
+    Serial.println("Overweight");
+    digitalWrite(7,HIGH);
+    delay(500);
+    digitalWrite(7,LOW);
+  } 
+  Serial.println("--------------------");
+  delay(1000);
+}
